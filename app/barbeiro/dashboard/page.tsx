@@ -17,6 +17,7 @@ import DeleteBookingButton from "./_components/delete-booking-button";
 import CreateBookingButton from "./_components/create-booking-button";
 
 import BarberSchedule from "./_components/barber-schedule";
+import BarberTeam from "./_components/barber-team";
 
 import BookingStatusButton from "./_components/booking-status-button";
 
@@ -95,6 +96,27 @@ const BarberDashboardPage = async () => {
   }
 
   // =====================================================
+  // BARBEARIA DO USUÁRIO
+  // =====================================================
+
+  const membership = await db.membership.findFirst({
+    where: {
+      userId: session.user.id,
+      active: true,
+    },
+    select: {
+      barbershopId: true,
+      role: true,
+    },
+  });
+
+  if (!membership) {
+    redirect("/");
+  }
+
+  const barbershopId = membership.barbershopId;
+
+  // =====================================================
   // RESUMO FINANCEIRO
   // =====================================================
 
@@ -118,6 +140,8 @@ const BarberDashboardPage = async () => {
 
   const bookingsData = await db.booking.findMany({
     where: {
+      barbershopId,
+
       status: {
         in: ["PENDING", "CONFIRMED"],
       },
@@ -296,6 +320,12 @@ const BarberDashboardPage = async () => {
   const users = await db.user.findMany({
     where: {
       role: "CUSTOMER",
+
+      bookings: {
+        some: {
+          barbershopId,
+        },
+      },
     },
 
     select: {
@@ -314,6 +344,10 @@ const BarberDashboardPage = async () => {
   // =====================================================
 
   const servicesData = await db.barbershopService.findMany({
+    where: {
+      barbershopId,
+    },
+
     select: {
       id: true,
       name: true,
@@ -330,6 +364,63 @@ const BarberDashboardPage = async () => {
     name: service.name,
     price: Number(service.price),
   }));
+
+  // =====================================================
+  // EQUIPE DE BARBEIROS
+  // =====================================================
+
+  const barberMemberships = await db.membership.findMany({
+    where: {
+      barbershopId,
+      role: "BARBER",
+      active: true,
+    },
+
+    select: {
+      id: true,
+
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const barberSubscription = await db.subscription.findUnique({
+    where: {
+      barbershopId,
+    },
+
+    select: {
+      barberCount: true,
+      pricePerBarber: true,
+      totalAmount: true,
+    },
+  });
+
+  const barberTeam = barberMemberships.map((membership) => ({
+    membershipId: membership.id,
+    name: membership.user.name,
+    email: membership.user.email,
+  }));
+
+  const barberCount =
+    barberSubscription?.barberCount ?? barberMemberships.length;
+
+  const pricePerBarber =
+    Number(barberSubscription?.pricePerBarber ?? 69.9);
+
+  const totalBarberAmount =
+    Number(
+      barberSubscription?.totalAmount ??
+        barberCount * pricePerBarber,
+    );
 
   // =====================================================
   // RENDER
@@ -483,6 +574,18 @@ const BarberDashboardPage = async () => {
             ))}
           </div>
         </section>
+
+        {/* =================================================
+            EQUIPE DE BARBEIROS
+        ================================================= */}
+
+        <BarberTeam
+          barbershopId={barbershopId}
+          initialBarbers={barberTeam}
+          initialBarberCount={barberCount}
+          initialTotalAmount={totalBarberAmount}
+          isOwner={membership.role === "OWNER"}
+        />
 
         {/* =================================================
             CONFIGURAÇÃO DA AGENDA

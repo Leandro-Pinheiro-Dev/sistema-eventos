@@ -24,11 +24,35 @@ export const getDashboardSummary = async () => {
   if (session.user.role !== "BARBER") {
     throw new Error("Acesso não autorizado.");
   }
+
+  // =====================================================
+  // BARBEARIA DO USUÁRIO
+  // =====================================================
+
+  const membership = await db.membership.findFirst({
+    where: {
+      userId: session.user.id,
+      active: true,
+    },
+    select: {
+      barbershopId: true,
+    },
+  });
+
+  if (!membership) {
+    throw new Error("Usuário não possui uma barbearia vinculada.");
+  }
+
+  const barbershopId = membership.barbershopId;
+
   // =====================================================
   // TOTAL EM FIADOS
   // =====================================================
 
   const debts = await db.customerDebt.findMany({
+    where: {
+      barbershopId,
+    },
     select: {
       userId: true,
       clientName: true,
@@ -134,6 +158,8 @@ export const getDashboardSummary = async () => {
 
   const dailyTransactions = await db.financialTransaction.findMany({
     where: {
+      barbershopId,
+
       createdAt: {
         gte: startOfDay,
         lte: endOfDay,
@@ -197,6 +223,8 @@ export const getDashboardSummary = async () => {
 
   const monthlyTransactions = await db.financialTransaction.findMany({
     where: {
+      barbershopId,
+
       createdAt: {
         gte: startOfMonth,
         lte: endOfMonth,

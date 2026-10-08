@@ -366,6 +366,7 @@ export const createBooking = async ({
 
   const booking = await db.booking.create({
     data: {
+      barbershopId,
       userId: bookingUserId,
 
       // Campo legado mantido para compatibilidade.

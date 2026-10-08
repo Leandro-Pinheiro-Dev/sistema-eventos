@@ -355,6 +355,7 @@ export const createBookingByBarber = async ({
 
   const booking = await db.booking.create({
     data: {
+      barbershopId,
       userId: userId || null,
 
       clientName: normalizedClientName,

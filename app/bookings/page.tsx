@@ -105,7 +105,7 @@ const Bookings = async () => {
 
       barbershopName: item.service.barbershop.name,
 
-      barbershopImage: item.service.barbershop.imageUrl,
+      barbershopImage: item.service.barbershop.imageUrl ?? undefined,
     })),
   }));
 

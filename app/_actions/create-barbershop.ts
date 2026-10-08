@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 
-const PRICE_PER_BARBER = 29.9;
+const PRICE_PER_BARBER = 69.9;
 
 function createSlug(name: string) {
   return name
@@ -134,6 +134,19 @@ export async function createBarbershop(data: {
           barbershopId: barbershop.id,
           role: "OWNER",
           active: true,
+        },
+      });
+
+      // O dono da barbearia também possui acesso ao dashboard.
+      // Porém, ele NÃO entra na cobrança mensal.
+      // A cobrança será feita somente pelos membros com role BARBER.
+      await tx.user.update({
+        where: {
+          id: session.user.id,
+        },
+        data: {
+          role: "BARBER",
+          needsRoleSelection: false,
         },
       });
 

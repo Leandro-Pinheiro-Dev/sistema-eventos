@@ -10,7 +10,7 @@ async function seedDatabase() {
 
     const barbershop = await prisma.barbershop.upsert({
       where: {
-        name: "Barbearia SpaçoVip",
+        slug: "barbearia-spacovip",
       },
       update: {
         address: "Sebastião Batista de Oliveira - Conj. Hab. Sao Jose, 157",
@@ -20,6 +20,7 @@ async function seedDatabase() {
       },
       create: {
         name: "Barbearia SpaçoVip",
+        slug: "barbearia-spacovip",
         address: "Sebastião Batista de Oliveira - Conj. Hab. Sao Jose, 157",
         imageUrl: "https://pt.pngtree.com/free-backgrounds-photos/barbearia",
         phones: ["(11) 99882-1533"],

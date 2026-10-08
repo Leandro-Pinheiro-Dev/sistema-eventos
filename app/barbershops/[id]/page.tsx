@@ -254,14 +254,18 @@ const BarbershopPage = async ({
         ================================================= */}
 
         <div className="relative h-72 w-full overflow-hidden sm:h-96">
-          <Image
-            src={barbershop.imageUrl}
-            alt={barbershop.name}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
+          {barbershop.imageUrl ? (
+            <Image
+              src={barbershop.imageUrl}
+              alt={barbershop.name}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-muted" />
+          )}
 
           <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
 

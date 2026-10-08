@@ -36,6 +36,29 @@ export const createPayment = async ({
   }
 
   // =====================================================
+  // BARBEARIA DO BARBEIRO
+  // =====================================================
+
+  const membership = await db.membership.findFirst({
+    where: {
+      userId: session.user.id,
+      active: true,
+      role: {
+        in: ["OWNER", "BARBER"],
+      },
+    },
+    select: {
+      barbershopId: true,
+    },
+  });
+
+  if (!membership) {
+    throw new Error("Barbearia não encontrada para este usuário.");
+  }
+
+  const barbershopId = membership.barbershopId;
+
+  // =====================================================
   // VALIDAÇÃO
   // =====================================================
 
@@ -67,6 +90,7 @@ export const createPayment = async ({
 
   const debts = await db.customerDebt.findMany({
     where: {
+      barbershopId,
       userId,
     },
     select: {
@@ -101,6 +125,7 @@ export const createPayment = async ({
 
   await db.customerDebt.create({
     data: {
+      barbershopId,
       userId,
       amount,
       type: "PAYMENT",
